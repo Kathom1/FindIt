@@ -1,0 +1,14 @@
+/* Gradient background (white → blue) */
+.login-page {
+  height: 100vh;
+  background: linear-gradient(135deg, #ffffff, #007bff);
+}
+
+/* White card with green accent */
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  border-top: 4px solid #28a745;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}

@@ -1,0 +1,42 @@
+/* write your own code */
+.product_img{
+    object-fit: contain;
+    width: 100px;
+    height: 200px;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffffff, #a9c9e8);
+}
+.post-card {
+  max-width: 500px;
+  width: 100%;
+  border-radius: 12px;
+  background: #ffffff;
+  border-top: 5px solid #2e7d32;
+}
+
+.post-card input,
+.post-card textarea {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: 0.2s;
+}
+
+.post-card input:focus,
+.post-card textarea:focus {
+  border-color: #2e7d32;
+  box-shadow: 0 0 5px rgba(46, 125, 50, 0.3);
+}
+
+.post-card button {
+  border-radius: 8px;
+  font-weight: bold;
+  background-color: #2e7d32;
+  border: none;
+}
+
+.post-card button:hover {
+  background-color: #1b5e20;
+}
