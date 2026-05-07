@@ -9,6 +9,7 @@ import { BrowserRouter, Route, Routes, Link } from 'react-router-dom';
 import NavBar from './Components/NavBar';
 import Hero from './Components/Home';
 import About from './Components/About';
+import Profile from './Components/Profile';
 function App() {
   return (
     <BrowserRouter>
@@ -57,6 +58,7 @@ function App() {
           <Route path="MpesaPayment" element={<MpesaPayment />} />
           <Route path="Browse" element={<Browse/>} />
           <Route path="About" element={<About/>} />
+          <Route path="Profile" element={<Profile/>} />
         </Routes>
       </div>
     </BrowserRouter>
