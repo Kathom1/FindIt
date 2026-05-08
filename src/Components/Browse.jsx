@@ -165,9 +165,15 @@ const Browse = () => {
                 {/* Button */}
                 <button
                   className="btn btn-success mt-auto w-100"
-                  onClick={() =>
-                    navigate("/MpesaPayment", { state: { post } })
-                  }
+                  onClick={() => {
+                    const user = localStorage.getItem("user");
+                    if (user) {
+                      navigate("/mpesapayment", { state: { post } });
+                    } else {
+                      // Not logged in -> send to login and ask to return to browse after auth
+                      navigate("/login", { state: { from: "/browse" } });
+                    }
+                  }}
                 >
                   View / Claim
                 </button>

@@ -4,12 +4,12 @@ import LogIn from './Components/LogIn';
 import SignUp from './Components/SignUp';
 import AddProduct from './Components/Post';
 import Browse from './Components/Browse';
-import MpesaPayment from './Components/MpesaPayment';
 import { BrowserRouter, Route, Routes, Link } from 'react-router-dom';
 import NavBar from './Components/NavBar';
 import Hero from './Components/Home';
 import About from './Components/About';
 import Profile from './Components/Profile';
+import LoggedInBanner from './Components/LoggedInBanner';
 function App() {
   return (
     <BrowserRouter>
@@ -49,16 +49,17 @@ function App() {
 </div>
         {/* configure the navbar */}
           <NavBar/>
+        {/* logged-in banner (appears below header when a user is present) */}
+          <LoggedInBanner />
         {/* configure the routes to the routes */}
         <Routes>
-          <Route path="Login" element={<LogIn />} />
-          <Route path="SignUp" element={<SignUp />} />
-          <Route path="Post" element={<AddProduct />} />
-          <Route path="" element={<Hero/>} />
-          <Route path="MpesaPayment" element={<MpesaPayment />} />
-          <Route path="Browse" element={<Browse/>} />
-          <Route path="About" element={<About/>} />
-          <Route path="Profile" element={<Profile/>} />
+          <Route path="/login" element={<LogIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/post" element={<AddProduct />} />
+          <Route path="/" element={<Hero/>} />
+          <Route path="/browse" element={<Browse/>} />
+          <Route path="/about" element={<About/>} />
+          <Route path="/profile" element={<Profile/>} />
         </Routes>
       </div>
     </BrowserRouter>

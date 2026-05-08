@@ -5,14 +5,17 @@ const Hero = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
 
-  const isLoggedIn = !!localStorage.getItem("token");
+  const isLoggedIn = !!localStorage.getItem("user");
 
   const handleProtectedRoute = (path) => {
     if (!isLoggedIn) {
       setMessage("Please log in to continue");
+
       setTimeout(() => {
-        navigate("/login");
-      }, 1500); // wait 1.5s so user sees message
+        navigate("/login", {
+          state: { from: path } // 👈 remembers intended page
+        });
+      }, 1500);
     } else {
       navigate(path);
     }
@@ -88,7 +91,7 @@ const Hero = () => {
           max-height: 320px;
         }
       `}</style>
-    </div>
+    </div >
   );
 };
 

@@ -13,6 +13,7 @@ const LogIn = () => {
   const [passwordStrength, setPasswordStrength] = useState("");
 
   const navigate = useNavigate();
+  const location = window.history.state && window.history.state.usr ? window.history.state.usr.location : null;
 
   // Optional: lightweight strength indicator (no blocking)
   const checkPasswordStrength = (pwd) => {
@@ -42,11 +43,27 @@ const LogIn = () => {
 
       setLoading("");
 
-      if (respond.data.user) {
-        localStorage.setItem("user", JSON.stringify(respond.data.user));
-        navigate("/");
+      // Support multiple response shapes: respond.data.user, respond.data.user.data,
+      // respond.user, respond.user.data
+      let user = null;
+      if (respond?.data?.user) {
+        user = respond.data.user.data ?? respond.data.user;
+      } else if (respond?.user) {
+        user = respond.user.data ?? respond.user;
+      }
+
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+        // notify listeners in this tab to update UI immediately
+        window.dispatchEvent(new Event("userChanged"));
+    // If a return location was provided, go there; otherwise go to /browse
+    const returnTo = location?.state?.from || "/browse";
+    navigate(returnTo, { replace: true });
       } else {
-        setError(respond.data.message);
+        // Provide a clear message when expected user object is missing
+        setError(
+          respond?.data?.message || respond?.message || "Login failed: no user data returned"
+        );
       }
     } catch (err) {
       setLoading("");

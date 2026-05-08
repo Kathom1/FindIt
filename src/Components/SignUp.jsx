@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const SignUp = () => {
   const [username, setUsername] = useState("");
@@ -15,6 +15,9 @@ const SignUp = () => {
   const [passwordStrength, setPasswordStrength] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // 🔐 Password strength checker
   const checkPasswordStrength = (pwd) => {
@@ -68,6 +71,30 @@ const SignUp = () => {
 
       setLoading("");
       setSuccess(response.data.success);
+
+      // Recommended behavior: if signup reports success, navigate to /browse.
+      // If the API also returned a user object (in any shape) store it.
+      if (response?.data?.success) {
+        // Extract user if present in multiple shapes
+        let user = null;
+        if (response?.data?.user) {
+          user = response.data.user.data ?? response.data.user;
+        } else if (response?.user) {
+          user = response.user.data ?? response.user;
+        }
+
+        if (user) {
+          localStorage.setItem("user", JSON.stringify(user));
+          // notify listeners in this tab to update immediately
+          window.dispatchEvent(new Event("userChanged"));
+        }
+
+  // If a return location was provided, go there; otherwise go to /browse
+  const returnTo = location?.state?.from || "/browse";
+  navigate(returnTo, { replace: true });
+      } else {
+        setError(response?.data?.message || response?.message || "Sign up failed");
+      }
 
       setUsername("");
       setEmail("");
