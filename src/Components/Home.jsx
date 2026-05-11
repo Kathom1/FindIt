@@ -42,7 +42,6 @@ const Hero = () => {
               <br />
               This platform helps you easily report lost items and claim found ones in a safe and fast way.
               <br /><br />
-              <b>How It Works</b>
             </p>
           </div>
 

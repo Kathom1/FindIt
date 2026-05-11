@@ -2,12 +2,20 @@ import React, { useState } from "react";
 import axios from "axios";
 
 const AddProduct = ({ user }) => {
+  // prefer prop, but fall back to localStorage so the component works when not passed a user prop
+  const storedUser = user || (() => {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
-  const [contact, setContact] = useState(""); // for non-logged in users
   const [photo, setPhoto] = useState("");
 
   const [loading, setLoading] = useState("");
@@ -31,10 +39,12 @@ const AddProduct = ({ user }) => {
       data.append("photo", photo);
 
       // If user is logged in, use their details
-      if (user) {
-        data.append("user_id", user.id);
+      if (storedUser) {
+        data.append("user_id", storedUser.id);
       } else {
-        data.append("contact", contact);
+        setLoading("");
+        setError('Please log in to post an item');
+        return;
       }
 
       const response = await axios.post(
@@ -51,7 +61,6 @@ const AddProduct = ({ user }) => {
       setDescription("");
       setLocation("");
       setDate("");
-      setContact("");
       setPhoto("");
 
     } catch (err) {
@@ -113,16 +122,9 @@ const AddProduct = ({ user }) => {
             required
           />
 
-          {/* If NOT logged in */}
-          {!user && (
-            <input
-              type="text"
-              className="form-control mb-3"
-              placeholder="Enter Email or Phone Number"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              required
-            />
+          {/* If NOT logged in - show a note */}
+          {!storedUser && (
+            <div className="alert alert-info text-center">Please log in to post an item</div>
           )}
 
           <input
@@ -133,7 +135,7 @@ const AddProduct = ({ user }) => {
             required
           />
 
-          <button className="btn btn-success w-100">
+          <button className="btn btn-success w-100" disabled={!storedUser}>
             Post Item
           </button>
         </form>

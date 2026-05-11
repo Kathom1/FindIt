@@ -22,7 +22,36 @@ const Browse = () => {
       const response = await axios.get(
         "https://stacykiboko.alwaysdata.net/api/get_product_details"
       );
-      setPosts(response.data);
+      // API may return { data: [...] } or an array directly
+      const payload = response.data?.data ?? response.data ?? [];
+      const items = Array.isArray(payload) ? payload : [];
+
+      // Normalize each item so Browse keys match what Post sends
+      const normalized = items.map((p) => {
+        const title = p.title || p.product_name || p.name || p.product_title || "";
+        const category = p.category || p.type || "";
+        const description = p.description || p.product_description || p.details || "";
+        const location = p.location || p.place || "";
+        const date = p.date || p.created_at || p.posted_at || "";
+        const photo = p.photo || p.image || p.photo_url || p.product_image || p.image_url || "";
+        const user_id = p.user_id || (p.user && (p.user.id || p.user.user_id)) || p.owner_id || p.userId || p.owner || null;
+        const username = p.username || p.posted_by || (p.user && (p.user.username || p.user.name)) || "";
+
+        return {
+          // keep original data available as well
+          ...p,
+          title,
+          category,
+          description,
+          location,
+          date,
+          photo,
+          user_id,
+          username,
+        };
+      });
+
+      setPosts(normalized);
       setLoading("");
     } catch (err) {
       setLoading("");
@@ -134,7 +163,7 @@ const Browse = () => {
 
                 {/* Title */}
                 <h5 className="text-success fw-bold">
-                  {post.title || post.product_name}
+                  {post.title || post.product_name || post.name || post.product_title}
                 </h5>
 
                 {/* Category */}
@@ -144,7 +173,7 @@ const Browse = () => {
 
                 {/* Description */}
                 <p className="text-muted small">
-                  {post.description || post.product_description}
+                  {post.description || post.product_description || post.details || post.product_description}
                 </p>
 
                 {/* Location */}
@@ -158,9 +187,25 @@ const Browse = () => {
                 </div>
 
                 {/* Verification hint */}
+                {/* Photo */}
+                {(
+                  post.photo || post.image || post.photo_url || post.product_image || post.image_url
+                ) && (
+                  <div className="text-center mb-2">
+                    <img src={post.photo || post.image || post.photo_url || post.product_image || post.image_url} alt={post.title || 'item'} style={{ maxHeight: 160, width: '100%', objectFit: 'cover', borderRadius: 8 }} />
+                  </div>
+                )}
+
                 <div className="alert alert-light border small py-2">
                   🔒 Verification required to claim
                 </div>
+
+                {/* Poster info */}
+                {(
+                  post.username || (post.user && (post.user.username || post.user.name)) || post.posted_by
+                ) && (
+                  <div className="small mb-2 text-muted">Posted by: {post.username || (post.user && (post.user.username || post.user.name)) || post.posted_by}</div>
+                )}
 
                 {/* Button */}
                 <button
