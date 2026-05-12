@@ -16,46 +16,61 @@ const Browse = () => {
 
   const navigate = useNavigate();
 
+  const IMAGE_BASE =
+    "https://stacykiboko.alwaysdata.net/static/images/";
+
+  // =========================
+  // FETCH POSTS
+  // =========================
   const getPosts = async () => {
     setLoading("Loading posts...");
+
     try {
       const response = await axios.get(
-        "https://stacykiboko.alwaysdata.net/api/get_product_details"
+        "https://stacykiboko.alwaysdata.net/api/get_products_details"
       );
-      // API may return { data: [...] } or an array directly
-      const payload = response.data?.data ?? response.data ?? [];
-      const items = Array.isArray(payload) ? payload : [];
 
-      // Normalize each item so Browse keys match what Post sends
-      const normalized = items.map((p) => {
-        const title = p.title || p.product_name || p.name || p.product_title || "";
-        const category = p.category || p.type || "";
-        const description = p.description || p.product_description || p.details || "";
-        const location = p.location || p.place || "";
-        const date = p.date || p.created_at || p.posted_at || "";
-        const photo = p.photo || p.image || p.photo_url || p.product_image || p.image_url || "";
-        const user_id = p.user_id || (p.user && (p.user.id || p.user.user_id)) || p.owner_id || p.userId || p.owner || null;
-        const username = p.username || p.posted_by || (p.user && (p.user.username || p.user.name)) || "";
+      const payload =
+        response.data?.data ?? response.data ?? [];
 
-        return {
-          // keep original data available as well
-          ...p,
-          title,
-          category,
-          description,
-          location,
-          date,
-          photo,
-          user_id,
-          username,
-        };
-      });
+      const items = Array.isArray(payload)
+        ? payload
+        : [];
+
+      const normalized = items.map((p) => ({
+        ...p,
+        title:
+          p.title ||
+          p.product_name ||
+          p.name ||
+          "",
+
+        category:
+          p.category || "",
+
+        description:
+          p.description ||
+          p.product_description ||
+          "",
+
+        location:
+          p.location || "",
+
+        date:
+          p.date || "",
+
+        photo:
+          p.photo ||
+          p.image ||
+          p.product_image ||
+          "",
+      }));
 
       setPosts(normalized);
       setLoading("");
     } catch (err) {
+      setError("Failed to load posts");
       setLoading("");
-      setError("Something went wrong");
     }
   };
 
@@ -63,13 +78,30 @@ const Browse = () => {
     getPosts();
   }, []);
 
-  // 🔍 FILTER + SEARCH + SORT
+  // =========================
+  // IMAGE HANDLER
+  // =========================
+  const getImageUrl = (photo) => {
+    if (!photo) {
+      return "https://via.placeholder.com/300x200?text=No+Image";
+    }
+
+    if (photo.startsWith("http")) {
+      return photo;
+    }
+
+    return IMAGE_BASE + photo;
+  };
+
+  // =========================
+  // FILTER + SEARCH + SORT
+  // =========================
   const processedPosts = posts
     .filter((post) => {
-      const title = (post.title || post.product_name || "").toLowerCase();
-      const desc = (post.description || post.product_description || "").toLowerCase();
-      const category = (post.category || "").toLowerCase();
+      const title = (post.title || "").toLowerCase();
+      const desc = (post.description || "").toLowerCase();
       const location = (post.location || "").toLowerCase();
+      const category = (post.category || "").toLowerCase();
 
       const matchesSearch =
         title.includes(search.toLowerCase()) ||
@@ -77,7 +109,8 @@ const Browse = () => {
         location.includes(search.toLowerCase());
 
       const matchesFilter =
-        filter === "all" || category === filter.toLowerCase();
+        filter === "all" ||
+        category === filter.toLowerCase();
 
       return matchesSearch && matchesFilter;
     })
@@ -95,52 +128,83 @@ const Browse = () => {
       return 0;
     });
 
-  // 📄 Pagination logic
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentPosts = processedPosts.slice(indexOfFirst, indexOfLast);
+  const indexOfLast =
+    currentPage * itemsPerPage;
 
-  const totalPages = Math.ceil(processedPosts.length / itemsPerPage);
+  const indexOfFirst =
+    indexOfLast - itemsPerPage;
+
+  const currentPosts =
+    processedPosts.slice(indexOfFirst, indexOfLast);
+
+  const totalPages = Math.ceil(
+    processedPosts.length / itemsPerPage
+  );
+
+  // =========================
+  // VIEW BUTTON LOGIC
+  // =========================
+  const handleView = (post) => {
+    const user = localStorage.getItem("user");
+
+    if (!user) {
+      navigate("/login", {
+        state: {
+          from: "/browse",
+          message: "Please log in to view item details",
+        },
+      });
+      return;
+    }
+
+    // simple view page (you can create later)
+    navigate("/post-details", {
+      state: { post },
+    });
+  };
 
   return (
     <div className="container mt-4">
 
-      {/* Header */}
-      <h2 className="text-center text-success mb-4">
+      {/* HEADER */}
+      <h2 className="text-center text-primary fw-bold mb-4">
         Available Posts
       </h2>
 
-      {/* 🔍 SEARCH + SORT + FILTER */}
+      {/* SEARCH / FILTER / SORT */}
       <div className="row mb-4 justify-content-center">
         <div className="col-md-10 d-flex flex-wrap gap-2">
 
-          {/* Search */}
           <input
             type="text"
             className="form-control search-bar"
             placeholder="Search posts..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
           />
 
-          {/* Sort */}
           <select
             className="form-select"
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
+            onChange={(e) =>
+              setSort(e.target.value)
+            }
           >
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
             <option value="az">A - Z</option>
           </select>
 
-          {/* Filter */}
           <select
             className="form-select"
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={(e) =>
+              setFilter(e.target.value)
+            }
           >
-            <option value="all">All Categories</option>
+            <option value="all">All</option>
             <option value="lost">Lost</option>
             <option value="found">Found</option>
             <option value="sale">Sale</option>
@@ -149,127 +213,138 @@ const Browse = () => {
         </div>
       </div>
 
-      {loading && <div className="text-center text-warning">{loading}</div>}
-      {error && <div className="text-center text-danger">{error}</div>}
+      {loading && (
+        <div className="text-center text-warning">
+          {loading}
+        </div>
+      )}
 
-      {/* 📦 POSTS */}
+      {error && (
+        <div className="text-center text-danger">
+          {error}
+        </div>
+      )}
+
+      {/* CARDS */}
       <div className="row">
-        {currentPosts.map((post, index) => (
-          <div key={index} className="col-md-4 col-sm-6 mb-4">
 
-            <div className="card post-card shadow-sm h-100">
+        {currentPosts.map((post, index) => (
+          <div
+            key={index}
+            className="col-md-4 col-sm-6 mb-4"
+          >
+
+            <div className="card shadow-lg border-0 h-100 post-card">
+
+              {/* IMAGE */}
+              <img
+                src={getImageUrl(post.photo)}
+                alt={post.title}
+                className="card-img-top post-image"
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/300x200?text=Image+Not+Found";
+                }}
+              />
 
               <div className="card-body d-flex flex-column">
 
-                {/* Title */}
-                <h5 className="text-success fw-bold">
-                  {post.title || post.product_name || post.name || post.product_title}
+                <h5 className="text-primary fw-bold">
+                  {post.title}
                 </h5>
 
-                {/* Category */}
                 <span className="badge bg-success mb-2 w-fit">
                   {post.category || "General"}
                 </span>
 
-                {/* Description */}
                 <p className="text-muted small">
-                  {post.description || post.product_description || post.details || post.product_description}
+                  {post.description}
                 </p>
 
-                {/* Location */}
-                <div className="small mb-1">
+                <div className="small text-secondary">
                   📍 {post.location || "Unknown"}
                 </div>
 
-                {/* Date */}
                 <div className="small text-secondary mb-2">
                   📅 {post.date || "No date"}
                 </div>
 
-                {/* Verification hint */}
-                {/* Photo */}
-                {(
-                  post.photo || post.image || post.photo_url || post.product_image || post.image_url
-                ) && (
-                  <div className="text-center mb-2">
-                    <img src={post.photo || post.image || post.photo_url || post.product_image || post.image_url} alt={post.title || 'item'} style={{ maxHeight: 160, width: '100%', objectFit: 'cover', borderRadius: 8 }} />
-                  </div>
-                )}
-
-                <div className="alert alert-light border small py-2">
-                  🔒 Verification required to claim
-                </div>
-
-                {/* Poster info */}
-                {(
-                  post.username || (post.user && (post.user.username || post.user.name)) || post.posted_by
-                ) && (
-                  <div className="small mb-2 text-muted">Posted by: {post.username || (post.user && (post.user.username || post.user.name)) || post.posted_by}</div>
-                )}
-
-                {/* Button */}
+                {/* VIEW BUTTON ONLY */}
                 <button
-                  className="btn btn-success mt-auto w-100"
-                  onClick={() => {
-                    const user = localStorage.getItem("user");
-                    if (user) {
-                      navigate("/mpesapayment", { state: { post } });
-                    } else {
-                      // Not logged in -> send to login and ask to return to browse after auth
-                      navigate("/login", { state: { from: "/browse" } });
-                    }
-                  }}
+                  className="btn btn-primary w-100 mt-auto view-btn"
+                  onClick={() => handleView(post)}
                 >
-                  View / Claim
+                  Claim Item
                 </button>
 
               </div>
+
             </div>
 
           </div>
         ))}
+
       </div>
 
-      {/* 📄 PAGINATION */}
+      {/* PAGINATION */}
       <div className="d-flex justify-content-center mt-4 gap-2">
 
         <button
           className="btn btn-outline-success"
           disabled={currentPage === 1}
-          onClick={() => setCurrentPage(currentPage - 1)}
+          onClick={() =>
+            setCurrentPage(currentPage - 1)
+          }
         >
           Prev
         </button>
 
-        <span className="align-self-center">
+        <span>
           Page {currentPage} of {totalPages}
         </span>
 
         <button
           className="btn btn-outline-success"
           disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage(currentPage + 1)}
+          onClick={() =>
+            setCurrentPage(currentPage + 1)
+          }
         >
           Next
         </button>
 
       </div>
 
-      {/* 🎨 Styling */}
+      {/* STYLES */}
       <style>{`
         .search-bar {
           border-radius: 25px;
         }
 
         .post-card {
-          border-radius: 12px;
-          border-left: 4px solid #198754;
+          border-radius: 15px;
           transition: 0.3s ease;
+          border-top: 3px solid #0d6efd;
         }
 
         .post-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+          box-shadow: 0 12px 25px rgba(13,110,253,0.2);
+        }
+
+        .post-image {
+          height: 200px;
+          object-fit: cover;
+        }
+
+        .view-btn {
+          background: linear-gradient(90deg, #0d6efd, #198754);
+          border: none;
+          font-weight: 600;
+        }
+
+        .view-btn:hover {
+          opacity: 0.9;
         }
 
         .w-fit {

@@ -37,7 +37,7 @@ const LogIn = () => {
       data.append("password", password);
 
       const respond = await axios.post(
-        "http://stacykiboko.alwaysdata.net/api/signin",
+        "https://stacykiboko.alwaysdata.net/api/signin",
         data
       );
 

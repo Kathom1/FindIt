@@ -44,68 +44,100 @@ const SignUp = () => {
   };
 
   // 🚀 Submit
-  const submit = async (e) => {
-    e.preventDefault();
-    setLoading("Please wait as we upload your data...");
-    setError("");
-    setSuccess("");
+    const submit = async (e) => {
+  e.preventDefault();
 
-    // ❌ Block weak passwords
-    if (passwordStrength !== "Strong") {
-      setLoading("");
-      setError("Please choose a stronger password.");
-      return;
-    }
+  setLoading("Please wait as we upload your data...");
+  setError("");
+  setSuccess("");
 
-    try {
-      const data = new FormData();
-      data.append("username", username);
-      data.append("email", email);
-      data.append("password", password);
-      data.append("phone", phone);
+  // BLOCK WEAK PASSWORDS
+  if (passwordStrength !== "Strong") {
+    setLoading("");
+    setError("Please choose a stronger password.");
+    return;
+  }
 
-      const response = await axios.post(
-        "http://stacykiboko.alwaysdata.net/api/signup",
-        data
+  try {
+    const data = new FormData();
+
+    data.append("username", username);
+    data.append("email", email);
+    data.append("password", password);
+    data.append("phone", phone);
+
+    const response = await axios.post(
+      "https://stacykiboko.alwaysdata.net/api/signup",
+      data
+    );
+
+    console.log("SIGNUP RESPONSE:", response.data);
+
+    setLoading("");
+
+    // SUCCESS
+    if (
+      response.data.success ||
+      response.data.message
+    ) {
+
+      setSuccess(
+        response.data.success ||
+        "Account created successfully"
       );
 
-      setLoading("");
-      setSuccess(response.data.success);
+      // CREATE USER OBJECT MANUALLY
+      const user = {
+        username,
+        email,
+        phone,
+      };
 
-      // Recommended behavior: if signup reports success, navigate to /browse.
-      // If the API also returned a user object (in any shape) store it.
-      if (response?.data?.success) {
-        // Extract user if present in multiple shapes
-        let user = null;
-        if (response?.data?.user) {
-          user = response.data.user.data ?? response.data.user;
-        } else if (response?.user) {
-          user = response.user.data ?? response.user;
-        }
+      // SAVE USER
+      localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+      );
 
-        if (user) {
-          localStorage.setItem("user", JSON.stringify(user));
-          // notify listeners in this tab to update immediately
-          window.dispatchEvent(new Event("userChanged"));
-        }
+      // UPDATE NAVBAR IMMEDIATELY
+      window.dispatchEvent(
+        new Event("userChanged")
+      );
 
-  // If a return location was provided, go there; otherwise go to /browse
-  const returnTo = location?.state?.from || "/browse";
-  navigate(returnTo, { replace: true });
-      } else {
-        setError(response?.data?.message || response?.message || "Sign up failed");
-      }
-
+      // CLEAR FORM
       setUsername("");
       setEmail("");
       setPassword("");
       setPhone("");
-    } catch (err) {
-      setLoading("");
-      setError(err.message);
-    }
-  };
 
+      // REDIRECT
+      setTimeout(() => {
+        navigate("/browse");
+      }, 1000);
+
+    } else {
+      setError(
+        response.data.message ||
+        "Signup failed"
+      );
+    }
+
+  } catch (err) {
+    console.log(err);
+
+    setLoading("");
+
+    setError(
+      err.response?.data?.message ||
+      err.message ||
+      "Something went wrong"
+    );
+  }
+};
+
+      
+
+      
   return (
     <div className="signup-page d-flex align-items-center justify-content-center">
       <div className="card shadow-lg p-4 signup-card">

@@ -48,7 +48,7 @@ const AddProduct = ({ user }) => {
       }
 
       const response = await axios.post(
-        "http://stacykiboko.alwaysdata.net/api/add_product",
+        "https://stacykiboko.alwaysdata.net/api/add_product",
         data
       );
 
